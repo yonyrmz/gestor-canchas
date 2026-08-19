@@ -33,7 +33,7 @@ export default function TurnoContent() {
       fetch('/api/turnos').then((r) => r.json()),
       fetch('/api/config').then((r) => r.json()),
     ]).then(([turnos, cfg]) => {
-      const t = turnos.find((t: TurnoDetallado) => t.id === parseInt(turnoId));
+      const t = turnos.find((t: TurnoDetallado) => t.id === turnoId);
       setTurno(t || null);
       setConfig(cfg);
       setLoading(false);

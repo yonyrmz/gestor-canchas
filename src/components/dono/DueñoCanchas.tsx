@@ -26,7 +26,7 @@ function parseUbicacion(u?: string | null): UbicacionData | null {
   try { return JSON.parse(u); } catch { return { lat: 0, lng: 0, descripcion: u, calle: '', altura: '', localidad: '', provincia: '', pais: 'Argentina' }; }
 }
 
-export default function DueñoCanchas({ userId }: { userId: number }) {
+export default function DueñoCanchas({ userId }: { userId: string }) {
   const [canchas, setCanchas] = useState<CanchaParsed[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -81,7 +81,7 @@ export default function DueñoCanchas({ userId }: { userId: number }) {
     fetchCanchas();
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     if (!confirm('¿Eliminar esta cancha?')) return;
     await fetch(`/api/canchas?id=${id}`, { method: 'DELETE' });
     fetchCanchas();

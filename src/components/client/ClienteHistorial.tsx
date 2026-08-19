@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Turno } from '@/lib/db/schema';
 
 interface Props {
-  userId: number;
+  userId: string;
 }
 
 interface TurnoConNombre extends Turno {
@@ -55,8 +55,8 @@ export default function ClienteHistorial({ userId }: Props) {
   const [turnos, setTurnos] = useState<TurnoConNombre[]>([]);
   const [loading, setLoading] = useState(true);
   const [cancelacionHoras, setCancelacionHoras] = useState<number>(1);
-  const [cancelandoId, setCancelandoId] = useState<number | null>(null);
-  const [expirados, setExpirados] = useState<Set<number>>(new Set());
+  const [cancelandoId, setCancelandoId] = useState<string | null>(null);
+  const [expirados, setExpirados] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     fetch(`/api/turnos?usuario_id=${userId}`)
@@ -71,7 +71,7 @@ export default function ClienteHistorial({ userId }: Props) {
       .catch(() => {});
   }, [userId]);
 
-  const handleCancel = async (turnoId: number) => {
+  const handleCancel = async (turnoId: string) => {
     setCancelandoId(turnoId);
     await fetch('/api/turnos/update', {
       method: 'PUT',
@@ -82,7 +82,7 @@ export default function ClienteHistorial({ userId }: Props) {
     setCancelandoId(null);
   };
 
-  const markExpired = (turnoId: number) => {
+  const markExpired = (turnoId: string) => {
     setExpirados((prev) => new Set(prev).add(turnoId));
   };
 

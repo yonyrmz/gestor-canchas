@@ -11,7 +11,7 @@ interface UbicacionData {
   calle: string; altura: string; localidad: string; provincia: string; pais: string;
 }
 
-interface UsuarioBasico { id: number; nombre: string; rol: string; }
+interface UsuarioBasico { id: string; nombre: string; rol: string; }
 
 interface CanchaConDuenio extends Cancha {
   propietario_nombre?: string;
@@ -35,7 +35,7 @@ export default function CanchasAdmin() {
   const [loading, setLoading] = useState(true);
   const [busqueda, setBusqueda] = useState('');
   const [showForm, setShowForm] = useState(false);
-  const [editandoId, setEditandoId] = useState<number | null>(null);
+  const [editandoId, setEditandoId] = useState<string | null>(null);
   const [form, setForm] = useState({ nombre: '', tipo: 'Futbol 5', precio_por_hora: '', descripcion: '', propietario_id: '' });
   const [fotos, setFotos] = useState<string[]>([]);
   const [ubicacion, setUbicacion] = useState<UbicacionData | null>(null);
@@ -56,7 +56,7 @@ export default function CanchasAdmin() {
     });
   }, []);
 
-  const getDuenioNombre = (pid: number) => usuarios.find((u) => u.id === pid)?.nombre || '-';
+  const getDuenioNombre = (pid: string) => usuarios.find((u) => u.id === pid)?.nombre || '-';
 
   const iniciarEdicion = (c: CanchaConDuenio) => {
     setEditandoId(c.id);
@@ -75,7 +75,7 @@ export default function CanchasAdmin() {
 
   const buildPayload = () => ({
     nombre: form.nombre, tipo: form.tipo, precio_por_hora: parseFloat(form.precio_por_hora),
-    descripcion: form.descripcion || undefined, propietario_id: parseInt(form.propietario_id),
+    descripcion: form.descripcion || undefined, propietario_id: form.propietario_id,
     fotos: JSON.stringify(fotos), ubicacion: ubicacion ? JSON.stringify(ubicacion) : undefined,
   });
 
@@ -109,7 +109,7 @@ export default function CanchasAdmin() {
     fetchCanchas();
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     if (!confirm('¿Eliminar esta cancha?')) return;
     await fetch(`/api/canchas?id=${id}`, { method: 'DELETE' });
     fetchCanchas();

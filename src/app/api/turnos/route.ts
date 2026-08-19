@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { getDb } from '@/lib/firebase';
 
 export async function GET(request: NextRequest) {
   try {
@@ -7,44 +7,50 @@ export async function GET(request: NextRequest) {
     const fecha = searchParams.get('fecha');
     const canchaId = searchParams.get('cancha_id');
     const usuarioId = searchParams.get('usuario_id');
+    const db = getDb();
 
-    const where: Record<string, unknown> = {};
-    if (fecha) where.fecha = fecha;
-    if (canchaId) where.canchaId = parseInt(canchaId);
-    if (usuarioId) where.usuarioId = parseInt(usuarioId);
+    let query: FirebaseFirestore.Query = db.collection('turnos');
+    if (fecha) query = query.where('fecha', '==', fecha);
+    if (canchaId) query = query.where('canchaId', '==', canchaId);
+    if (usuarioId) query = query.where('usuarioId', '==', usuarioId);
 
-    const turnos = await prisma.turno.findMany({
-      where,
-      include: {
-        usuario: { select: { nombre: true, email: true, telefono: true } },
-        cancha: { select: { nombre: true, precioPorHora: true, propietarioId: true } }
-      },
-      orderBy: [{ fecha: 'desc' }, { horaInicio: 'asc' }]
-    });
+    const snapshot = await query.orderBy('fecha', 'desc').orderBy('horaInicio', 'asc').get();
 
-    const mapped = turnos.map(t => ({
-      id: t.id,
-      usuario_id: t.usuarioId,
-      cancha_id: t.canchaId,
-      fecha: t.fecha,
-      hora_inicio: t.horaInicio,
-      hora_fin: t.horaFin,
-      tarifa: t.tarifa,
-      sena_pagada: t.senaPagada,
-      estado: t.estado,
-      multa: t.multa,
-      multa_descripcion: t.multaDescripcion,
-      cancelacion_motivo: t.cancelacionMotivo,
-      usuario_nombre: t.usuario.nombre,
-      usuario_email: t.usuario.email,
-      usuario_telefono: t.usuario.telefono,
-      cancha_nombre: t.cancha.nombre,
-      precio_por_hora: t.cancha.precioPorHora,
-      propietario_id: t.cancha.propietarioId
-    }));
+    const mapped = await Promise.all(
+      snapshot.docs.map(async doc => {
+        const t = doc.data();
+        const usuarioDoc = t.usuarioId ? await db.collection('usuarios').doc(t.usuarioId).get() : null;
+        const canchaDoc = t.canchaId ? await db.collection('canchas').doc(t.canchaId).get() : null;
+        const usuarioData = usuarioDoc?.data();
+        const canchaData = canchaDoc?.data();
+
+        return {
+          id: doc.id,
+          usuario_id: t.usuarioId,
+          cancha_id: t.canchaId,
+          fecha: t.fecha,
+          hora_inicio: t.horaInicio,
+          hora_fin: t.horaFin,
+          tarifa: t.tarifa,
+          sena_pagada: t.senaPagada,
+          estado: t.estado,
+          multa: t.multa,
+          multa_descripcion: t.multaDescripcion,
+          cancelacion_motivo: t.cancelacionMotivo,
+          usuario_nombre: usuarioData?.nombre || '',
+          usuario_email: usuarioData?.email || '',
+          usuario_telefono: usuarioData?.telefono || '',
+          cancha_nombre: canchaData?.nombre || '',
+          precio_por_hora: canchaData?.precioPorHora || 0,
+          propietario_id: canchaData?.propietarioId || '',
+        };
+      })
+    );
 
     return NextResponse.json(mapped);
-  } catch { return NextResponse.json({ error: 'Error al obtener turnos' }, { status: 500 }); }
+  } catch {
+    return NextResponse.json({ error: 'Error al obtener turnos' }, { status: 500 });
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -52,49 +58,53 @@ export async function POST(request: NextRequest) {
     const { usuario_id, cancha_id, fecha, hora_inicio, hora_fin, tarifa } = await request.json();
     if (!usuario_id || !cancha_id || !fecha || !hora_inicio || !hora_fin) return NextResponse.json({ error: 'Faltan campos requeridos' }, { status: 400 });
 
-    const overlap = await prisma.turno.findFirst({
-      where: {
-        canchaId: cancha_id,
-        fecha,
-        estado: { notIn: ['cancelado'] },
-        OR: [
-          { horaInicio: { lt: hora_fin }, horaFin: { gt: hora_inicio } }
-        ]
-      }
+    const db = getDb();
+
+    const overlapSnap = await db.collection('turnos')
+      .where('canchaId', '==', cancha_id)
+      .where('fecha', '==', fecha)
+      .get();
+
+    const overlap = overlapSnap.docs.find(doc => {
+      const t = doc.data();
+      return t.estado !== 'cancelado' && t.horaInicio < hora_fin && t.horaFin > hora_inicio;
     });
     if (overlap) return NextResponse.json({ error: 'El horario ya está ocupado' }, { status: 409 });
 
-    const turno = await prisma.turno.create({
-      data: {
-        usuarioId: usuario_id,
-        canchaId: cancha_id,
-        fecha,
-        horaInicio: hora_inicio,
-        horaFin: hora_fin,
-        tarifa,
-        senaPagada: false,
-        estado: 'pendiente'
-      },
-      include: {
-        usuario: { select: { nombre: true, email: true, telefono: true } },
-        cancha: { select: { nombre: true, precioPorHora: true, propietarioId: true } }
-      }
+    const docRef = await db.collection('turnos').add({
+      usuarioId: usuario_id,
+      canchaId: cancha_id,
+      fecha,
+      horaInicio: hora_inicio,
+      horaFin: hora_fin,
+      tarifa,
+      senaPagada: false,
+      estado: 'pendiente',
+      multa: 0,
+      multaDescripcion: null,
+      cancelacionMotivo: null,
+      createdAt: new Date().toISOString(),
     });
 
+    const usuarioDoc = await db.collection('usuarios').doc(usuario_id).get();
+    const canchaDoc = await db.collection('canchas').doc(cancha_id).get();
+
     const mapped = {
-      id: turno.id,
-      usuario_id: turno.usuarioId,
-      cancha_id: turno.canchaId,
-      fecha: turno.fecha,
-      hora_inicio: turno.horaInicio,
-      hora_fin: turno.horaFin,
-      tarifa: turno.tarifa,
-      sena_pagada: turno.senaPagada,
-      estado: turno.estado,
-      usuario_nombre: turno.usuario.nombre,
-      cancha_nombre: turno.cancha.nombre
+      id: docRef.id,
+      usuario_id,
+      cancha_id,
+      fecha,
+      hora_inicio,
+      hora_fin,
+      tarifa,
+      sena_pagada: false,
+      estado: 'pendiente',
+      usuario_nombre: usuarioDoc.data()?.nombre || '',
+      cancha_nombre: canchaDoc.data()?.nombre || '',
     };
 
     return NextResponse.json({ turno: mapped, message: 'Turno creado' }, { status: 201 });
-  } catch { return NextResponse.json({ error: 'Error al crear turno' }, { status: 500 }); }
+  } catch {
+    return NextResponse.json({ error: 'Error al crear turno' }, { status: 500 });
+  }
 }

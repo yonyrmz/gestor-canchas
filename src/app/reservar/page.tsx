@@ -73,7 +73,7 @@ export default function ReservarPage() {
     setNotificaciones((prev) => prev.map((n) => ({ ...n, leida: true })));
   };
 
-  const markOneRead = async (id: number) => {
+  const markOneRead = async (id: string) => {
     await fetch('/api/notificaciones', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },

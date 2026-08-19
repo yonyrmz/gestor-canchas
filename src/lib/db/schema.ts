@@ -1,65 +1,62 @@
 export interface Usuario {
-  id: number;
+  id: string;
   nombre: string;
   email: string;
-  password: string;
-  rol: 'superadmin' | 'dono' | 'cliente';
-  telefono?: string;
-  logo?: string;
-  servicios?: string;
-  created_at: string;
+  rol: string;
+  telefono?: string | null;
+  logo?: string | null;
+  servicios?: string | null;
+  createdAt?: string;
 }
 
 export interface Cancha {
-  id: number;
+  id: string;
   nombre: string;
   tipo: string;
   precio_por_hora: number;
+  descripcion?: string | null;
   disponible: boolean;
-  descripcion?: string;
-  fotos?: string;
-  ubicacion?: string;
-  propietario_id: number;
-  created_at: string;
+  fotos?: string | null;
+  ubicacion?: string | null;
+  propietario_id: string;
 }
 
 export interface Turno {
-  id: number;
-  usuario_id: number;
-  cancha_id: number;
+  id: string;
+  usuario_id: string;
+  cancha_id: string;
   fecha: string;
   hora_inicio: string;
   hora_fin: string;
   tarifa: number;
   sena_pagada: boolean;
-  estado: 'pendiente' | 'confirmado' | 'cancelado' | 'no_show';
+  estado: string;
   multa?: number;
-  multa_descripcion?: string;
-  cancelacion_motivo?: string;
-  created_at: string;
-}
-
-export interface Notificacion {
-  id: number;
-  usuario_id: number;
-  turno_id: number;
-  titulo: string;
-  mensaje: string;
-  leida: boolean;
-  created_at: string;
+  multa_descripcion?: string | null;
+  cancelacion_motivo?: string | null;
 }
 
 export interface Horario {
-  id: number;
-  cancha_id: number;
+  id: string;
+  cancha_id: string;
   dia_semana: number;
   hora_apertura: string;
   hora_cierre: string;
   activo: boolean;
 }
 
+export interface Notificacion {
+  id: string;
+  usuario_id: string;
+  turno_id?: string | null;
+  titulo: string;
+  mensaje: string;
+  leida: boolean;
+  createdAt?: string;
+}
+
 export interface Configuracion {
-  id: number;
+  id: string;
   clave: string;
   valor: string;
 }

@@ -1,16 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { getDb } from '@/lib/firebase';
 
 export async function PUT(request: NextRequest) {
   try {
     const { id, estado, sena_pagada, propietario_id, multa, multa_descripcion, motivo } = await request.json();
     if (!id) return NextResponse.json({ error: 'ID requerido' }, { status: 400 });
 
+    const db = getDb();
+
     if (propietario_id) {
-      const turno = await prisma.turno.findFirst({
-        where: { id, cancha: { propietarioId: propietario_id } }
-      });
-      if (!turno) return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
+      const turnoDoc = await db.collection('turnos').doc(id).get();
+      if (!turnoDoc.exists) return NextResponse.json({ error: 'Turno no encontrado' }, { status: 404 });
+      const turnoData = turnoDoc.data()!;
+      const canchaDoc = await db.collection('canchas').doc(turnoData.canchaId).get();
+      if (canchaDoc.data()?.propietarioId !== propietario_id) return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
     }
 
     const data: Record<string, unknown> = {};
@@ -21,73 +24,65 @@ export async function PUT(request: NextRequest) {
     if (motivo !== undefined && estado === 'cancelado') data.cancelacionMotivo = motivo;
     if (!Object.keys(data).length) return NextResponse.json({ error: 'Nada que actualizar' }, { status: 400 });
 
-    const turno = await prisma.turno.update({
-      where: { id },
-      data,
-      include: {
-        usuario: { select: { nombre: true, email: true, telefono: true } },
-        cancha: { select: { nombre: true, precioPorHora: true, propietarioId: true } }
-      }
-    });
+    await db.collection('turnos').doc(id).update(data);
+    const updatedTurno = await db.collection('turnos').doc(id).get();
+    const turnoData = updatedTurno.data()!;
+
+    const usuarioDoc = await db.collection('usuarios').doc(turnoData.usuarioId).get();
+    const canchaDoc = await db.collection('canchas').doc(turnoData.canchaId).get();
+    const usuarioData = usuarioDoc.data();
+    const canchaData = canchaDoc.data();
 
     if (estado) {
-      const canchaNombre = turno.cancha.nombre;
-      const fechaStr = turno.fecha;
-      const horaStr = turno.horaInicio;
+      const canchaNombre = canchaData?.nombre || '';
+      const notifData: { usuarioId: string; turnoId: string; titulo: string; mensaje: string; leida: boolean; createdAt: string } = {
+        usuarioId: turnoData.usuarioId,
+        turnoId: id,
+        titulo: '',
+        mensaje: '',
+        leida: false,
+        createdAt: new Date().toISOString(),
+      };
 
       if (estado === 'confirmado') {
-        await prisma.notificacion.create({
-          data: {
-            usuarioId: turno.usuarioId,
-            turnoId: id,
-            titulo: 'Turno confirmado',
-            mensaje: `Tu turno en ${canchaNombre} fue confirmado`
-          }
-        });
+        notifData.titulo = 'Turno confirmado';
+        notifData.mensaje = `Tu turno en ${canchaNombre} fue confirmado`;
       } else if (estado === 'cancelado') {
         const motivoText = motivo ? ` Motivo: ${motivo}` : '';
-        await prisma.notificacion.create({
-          data: {
-            usuarioId: turno.usuarioId,
-            turnoId: id,
-            titulo: 'Turno cancelado',
-            mensaje: `Tu turno en ${canchaNombre} fue cancelado por el dueño.${motivoText}`
-          }
-        });
+        notifData.titulo = 'Turno cancelado';
+        notifData.mensaje = `Tu turno en ${canchaNombre} fue cancelado por el dueño.${motivoText}`;
       } else if (estado === 'no_show') {
         const multaDesc = multa_descripcion || `Multa: $${multa || 0}`;
-        await prisma.notificacion.create({
-          data: {
-            usuarioId: turno.usuarioId,
-            turnoId: id,
-            titulo: 'No te presentaste',
-            mensaje: `No asististe a tu turno en ${canchaNombre}. ${multaDesc}`
-          }
-        });
+        notifData.titulo = 'No te presentaste';
+        notifData.mensaje = `No asististe a tu turno en ${canchaNombre}. ${multaDesc}`;
       }
+
+      if (notifData.titulo) await db.collection('notificaciones').add(notifData);
     }
 
     const mapped = {
-      id: turno.id,
-      usuario_id: turno.usuarioId,
-      cancha_id: turno.canchaId,
-      fecha: turno.fecha,
-      hora_inicio: turno.horaInicio,
-      hora_fin: turno.horaFin,
-      tarifa: turno.tarifa,
-      sena_pagada: turno.senaPagada,
-      estado: turno.estado,
-      multa: turno.multa,
-      multa_descripcion: turno.multaDescripcion,
-      cancelacion_motivo: turno.cancelacionMotivo,
-      usuario_nombre: turno.usuario.nombre,
-      usuario_email: turno.usuario.email,
-      usuario_telefono: turno.usuario.telefono,
-      cancha_nombre: turno.cancha.nombre,
-      precio_por_hora: turno.cancha.precioPorHora,
-      propietario_id: turno.cancha.propietarioId
+      id: updatedTurno.id,
+      usuario_id: turnoData.usuarioId,
+      cancha_id: turnoData.canchaId,
+      fecha: turnoData.fecha,
+      hora_inicio: turnoData.horaInicio,
+      hora_fin: turnoData.horaFin,
+      tarifa: turnoData.tarifa,
+      sena_pagada: turnoData.senaPagada,
+      estado: turnoData.estado,
+      multa: turnoData.multa,
+      multa_descripcion: turnoData.multaDescripcion,
+      cancelacion_motivo: turnoData.cancelacionMotivo,
+      usuario_nombre: usuarioData?.nombre || '',
+      usuario_email: usuarioData?.email || '',
+      usuario_telefono: usuarioData?.telefono || '',
+      cancha_nombre: canchaData?.nombre || '',
+      precio_por_hora: canchaData?.precioPorHora || 0,
+      propietario_id: canchaData?.propietarioId || '',
     };
 
     return NextResponse.json({ turno: mapped, message: 'Turno actualizado' });
-  } catch { return NextResponse.json({ error: 'Error al actualizar turno' }, { status: 500 }); }
+  } catch {
+    return NextResponse.json({ error: 'Error al actualizar turno' }, { status: 500 });
+  }
 }

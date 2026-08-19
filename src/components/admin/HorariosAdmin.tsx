@@ -8,7 +8,7 @@ const DIAS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', '
 
 export default function HorariosAdmin() {
   const [canchas, setCanchas] = useState<Cancha[]>([]);
-  const [canchaSeleccionada, setCanchaSeleccionada] = useState<number>(0);
+  const [canchaSeleccionada, setCanchaSeleccionada] = useState<string>('');
   const [horarios, setHorarios] = useState<Horario[]>([]);
   const [loading, setLoading] = useState(true);
   const [showBulk, setShowBulk] = useState(false);
@@ -52,7 +52,7 @@ export default function HorariosAdmin() {
     fetchHorarios();
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     await fetch(`/api/horarios?id=${id}`, { method: 'DELETE' });
     setHorarios(horarios.filter((h) => h.id !== id));
   };
@@ -66,17 +66,17 @@ export default function HorariosAdmin() {
         <label className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-2">Seleccionar cancha</label>
         <select
           value={canchaSeleccionada}
-          onChange={(e) => setCanchaSeleccionada(parseInt(e.target.value))}
+          onChange={(e) => setCanchaSeleccionada(e.target.value)}
           className="input-dark rounded-lg px-4 py-3 text-sm w-full max-w-md"
         >
-          <option value={0}>-- Elegí una cancha --</option>
+          <option value="">-- Elegí una cancha --</option>
           {canchas.map((c) => (
             <option key={c.id} value={c.id}>{c.nombre} ({c.tipo})</option>
           ))}
         </select>
       </div>
 
-      {canchaSeleccionada > 0 && (
+      {canchaSeleccionada && (
         <>
           <div className="flex gap-3 mb-6">
             <button

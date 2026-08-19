@@ -6,9 +6,9 @@ import BulkSchedule from '@/components/shared/BulkSchedule';
 
 const DIAS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 
-export default function DueñoHorarios({ userId }: { userId: number }) {
+export default function DueñoHorarios({ userId }: { userId: string }) {
   const [canchas, setCanchas] = useState<Cancha[]>([]);
-  const [canchaSeleccionada, setCanchaSeleccionada] = useState<number>(0);
+  const [canchaSeleccionada, setCanchaSeleccionada] = useState<string>('');
   const [horarios, setHorarios] = useState<Horario[]>([]);
   const [loading, setLoading] = useState(true);
   const [showBulk, setShowBulk] = useState(false);
@@ -43,12 +43,12 @@ export default function DueñoHorarios({ userId }: { userId: number }) {
     fetch(`/api/horarios?cancha_id=${canchaSeleccionada}`).then((r) => r.json()).then(setHorarios);
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     await fetch(`/api/horarios?id=${id}`, { method: 'DELETE' });
     setHorarios(horarios.filter((h) => h.id !== id));
   };
 
-  const toggleActivo = async (id: number, current: boolean) => {
+  const toggleActivo = async (id: string, current: boolean) => {
     const nuevo = !current;
     await fetch('/api/horarios', {
       method: 'PUT',
@@ -67,17 +67,17 @@ export default function DueñoHorarios({ userId }: { userId: number }) {
         <label className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-2">Seleccionar cancha</label>
         <select
           value={canchaSeleccionada}
-          onChange={(e) => { setCanchaSeleccionada(parseInt(e.target.value)); setShowBulk(false); }}
+          onChange={(e) => { setCanchaSeleccionada(e.target.value); setShowBulk(false); }}
           className="input-dark rounded-lg px-4 py-3 text-sm w-full max-w-md"
         >
-          <option value={0}>-- Elegí una cancha --</option>
+          <option value="">-- Elegí una cancha --</option>
           {canchas.map((c) => (
             <option key={c.id} value={c.id}>{c.nombre} ({c.tipo})</option>
           ))}
         </select>
       </div>
 
-      {canchaSeleccionada > 0 && (
+      {canchaSeleccionada && (
         <>
           <div className="flex gap-3 mb-6">
             <button

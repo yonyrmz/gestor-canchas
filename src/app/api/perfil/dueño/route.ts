@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { getDb } from '@/lib/firebase';
 
 export async function GET(request: NextRequest) {
   try {
@@ -7,13 +7,24 @@ export async function GET(request: NextRequest) {
     const usuarioId = searchParams.get('usuario_id');
     if (!usuarioId) return NextResponse.json({ error: 'usuario_id requerido' }, { status: 400 });
 
-    const user = await prisma.usuario.findUnique({
-      where: { id: parseInt(usuarioId) },
-      select: { id: true, nombre: true, email: true, telefono: true, logo: true, servicios: true },
+    const db = getDb();
+    const userDoc = await db.collection('usuarios').doc(usuarioId).get();
+    if (!userDoc.exists) return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 });
+
+    const data = userDoc.data()!;
+    return NextResponse.json({
+      perfil: {
+        id: userDoc.id,
+        nombre: data.nombre,
+        email: data.email,
+        telefono: data.telefono || null,
+        logo: data.logo || null,
+        servicios: data.servicios || null,
+      },
     });
-    if (!user) return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 });
-    return NextResponse.json({ perfil: user });
-  } catch { return NextResponse.json({ error: 'Error al obtener perfil' }, { status: 500 }); }
+  } catch {
+    return NextResponse.json({ error: 'Error al obtener perfil' }, { status: 500 });
+  }
 }
 
 export async function PUT(request: NextRequest) {
@@ -21,16 +32,28 @@ export async function PUT(request: NextRequest) {
     const { usuario_id, logo, servicios } = await request.json();
     if (!usuario_id) return NextResponse.json({ error: 'usuario_id requerido' }, { status: 400 });
 
-    const data: { logo?: string; servicios?: string } = {};
+    const db = getDb();
+    const data: Record<string, unknown> = {};
     if (logo !== undefined) data.logo = logo;
     if (servicios !== undefined) data.servicios = servicios;
     if (Object.keys(data).length === 0) return NextResponse.json({ error: 'Nada que actualizar' }, { status: 400 });
 
-    const user = await prisma.usuario.update({
-      where: { id: usuario_id },
-      data,
-      select: { id: true, nombre: true, email: true, telefono: true, logo: true, servicios: true },
+    await db.collection('usuarios').doc(usuario_id).update(data);
+    const updated = await db.collection('usuarios').doc(usuario_id).get();
+    const updatedData = updated.data()!;
+
+    return NextResponse.json({
+      perfil: {
+        id: updated.id,
+        nombre: updatedData.nombre,
+        email: updatedData.email,
+        telefono: updatedData.telefono || null,
+        logo: updatedData.logo || null,
+        servicios: updatedData.servicios || null,
+      },
+      message: 'Perfil actualizado',
     });
-    return NextResponse.json({ perfil: user, message: 'Perfil actualizado' });
-  } catch { return NextResponse.json({ error: 'Error al actualizar perfil' }, { status: 500 }); }
+  } catch {
+    return NextResponse.json({ error: 'Error al actualizar perfil' }, { status: 500 });
+  }
 }

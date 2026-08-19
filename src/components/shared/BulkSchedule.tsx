@@ -8,7 +8,7 @@ const DIAS = [
 ];
 
 interface Props {
-  canchaId: number;
+  canchaId: string;
   onSaved: () => void;
   onCancel: () => void;
 }

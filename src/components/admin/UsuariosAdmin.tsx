@@ -17,7 +17,7 @@ export default function UsuariosAdmin() {
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [loading, setLoading] = useState(true);
   const [busqueda, setBusqueda] = useState('');
-  const [editandoId, setEditandoId] = useState<number | null>(null);
+  const [editandoId, setEditandoId] = useState<string | null>(null);
   const [form, setForm] = useState<UsuarioEditando>({});
   const [saving, setSaving] = useState(false);
 
@@ -61,7 +61,7 @@ export default function UsuariosAdmin() {
     fetchUsuarios();
   };
 
-  const eliminar = async (id: number) => {
+  const eliminar = async (id: string) => {
     if (!confirm('¿Eliminar este usuario?')) return;
     await fetch(`/api/usuarios?id=${id}`, { method: 'DELETE' });
     fetchUsuarios();

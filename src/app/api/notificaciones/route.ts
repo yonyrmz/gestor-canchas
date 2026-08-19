@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { getDb } from '@/lib/firebase';
 
 export async function GET(request: NextRequest) {
   try {
@@ -7,38 +7,42 @@ export async function GET(request: NextRequest) {
     const usuarioId = searchParams.get('usuario_id');
     if (!usuarioId) return NextResponse.json({ error: 'usuario_id requerido' }, { status: 400 });
 
-    const id = parseInt(usuarioId);
+    const db = getDb();
+    const snapshot = await db.collection('notificaciones')
+      .where('usuarioId', '==', usuarioId)
+      .orderBy('createdAt', 'desc')
+      .limit(50)
+      .get();
 
-    const notificaciones = await prisma.notificacion.findMany({
-      where: { usuarioId: id },
-      orderBy: { createdAt: 'desc' },
-      take: 50
-    });
-
-    const noLeidas = await prisma.notificacion.count({
-      where: { usuarioId: id, leida: false }
-    });
+    const notificaciones = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const noLeidas = notificaciones.filter((n: Record<string, unknown>) => !n.leida).length;
 
     return NextResponse.json({ notificaciones, noLeidas });
-  } catch { return NextResponse.json({ error: 'Error al obtener notificaciones' }, { status: 500 }); }
+  } catch {
+    return NextResponse.json({ error: 'Error al obtener notificaciones' }, { status: 500 });
+  }
 }
 
 export async function PUT(request: NextRequest) {
   try {
     const { id, usuario_id, marcarTodas } = await request.json();
+    const db = getDb();
 
     if (marcarTodas && usuario_id) {
-      await prisma.notificacion.updateMany({
-        where: { usuarioId: usuario_id, leida: false },
-        data: { leida: true }
-      });
+      const snapshot = await db.collection('notificaciones')
+        .where('usuarioId', '==', usuario_id)
+        .where('leida', '==', false)
+        .get();
+
+      const batch = db.batch();
+      for (const doc of snapshot.docs) batch.update(doc.ref, { leida: true });
+      await batch.commit();
     } else if (id) {
-      await prisma.notificacion.update({
-        where: { id },
-        data: { leida: true }
-      });
+      await db.collection('notificaciones').doc(id).update({ leida: true });
     }
 
     return NextResponse.json({ message: 'Notificaciones actualizadas' });
-  } catch { return NextResponse.json({ error: 'Error al actualizar' }, { status: 500 }); }
+  } catch {
+    return NextResponse.json({ error: 'Error al actualizar' }, { status: 500 });
+  }
 }

@@ -31,7 +31,7 @@ interface GrupoPorUbicacion {
 }
 
 interface OwnerProfile {
-  id: number;
+  id: string;
   logo?: string;
   servicios?: string[];
 }
@@ -64,7 +64,7 @@ export default function CanchasAgrupadas({ onSelectCancha }: Props) {
       const disponibles = allCanchas.filter((c) => c.disponible);
 
       const propietarioIds = [...new Set(disponibles.map(c => c.propietario_id))];
-      const ownersMap = new Map<number, OwnerProfile>();
+      const ownersMap = new Map<string, OwnerProfile>();
       await Promise.all(
         propietarioIds.map(async (pid) => {
           try {

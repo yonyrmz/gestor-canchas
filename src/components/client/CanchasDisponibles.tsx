@@ -11,7 +11,7 @@ interface CanchaConHorarios extends Cancha {
 
 interface Props {
   onSelectCancha: (cancha: CanchaConHorarios) => void;
-  canchaSeleccionada: number | null;
+  canchaSeleccionada: string | null;
 }
 
 export default function CanchasDisponibles({ onSelectCancha, canchaSeleccionada }: Props) {

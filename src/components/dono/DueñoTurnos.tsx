@@ -10,20 +10,20 @@ type TurnoConDetalles = Turno & {
   usuario_telefono: string;
   cancha_nombre: string;
   precio_por_hora: number;
-  propietario_id: number;
+  propietario_id: string;
 };
 
 type Tab = 'activos' | 'historial';
 
-export default function DueñoTurnos({ userId }: { userId: number }) {
+export default function DueñoTurnos({ userId }: { userId: string }) {
   const [turnos, setTurnos] = useState<TurnoConDetalles[]>([]);
-  const [canchasIds, setCanchasIds] = useState<number[]>([]);
+  const [canchasIds, setCanchasIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filtro, setFiltro] = useState('todos');
   const [tab, setTab] = useState<Tab>('activos');
-  const [noShowForm, setNoShowForm] = useState<number | null>(null);
-  const [cancelForm, setCancelForm] = useState<number | null>(null);
+  const [noShowForm, setNoShowForm] = useState<string | null>(null);
+  const [cancelForm, setCancelForm] = useState<string | null>(null);
   const [cancelMotivo, setCancelMotivo] = useState('');
   const [multa, setMulta] = useState('');
   const [multaDesc, setMultaDesc] = useState('');
@@ -49,7 +49,7 @@ export default function DueñoTurnos({ userId }: { userId: number }) {
     });
   };
 
-  const updateTurno = async (id: number, updates: Record<string, unknown>) => {
+  const updateTurno = async (id: string, updates: Record<string, unknown>) => {
     await fetch('/api/turnos/update', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -58,15 +58,15 @@ export default function DueñoTurnos({ userId }: { userId: number }) {
     refreshTurnos();
   };
 
-  const confirmarTurno = (id: number) => updateTurno(id, { estado: 'confirmado' });
-  const cancelarTurno = (id: number) => updateTurno(id, { estado: 'cancelado' });
-  const cancelarConMotivo = (id: number) => {
+  const confirmarTurno = (id: string) => updateTurno(id, { estado: 'confirmado' });
+  const cancelarTurno = (id: string) => updateTurno(id, { estado: 'cancelado' });
+  const cancelarConMotivo = (id: string) => {
     updateTurno(id, { estado: 'cancelado', motivo: cancelMotivo });
     setCancelForm(null);
     setCancelMotivo('');
   };
 
-  const registrarNoShow = (id: number) => {
+  const registrarNoShow = (id: string) => {
     updateTurno(id, {
       estado: 'no_show',
       multa: parseFloat(multa) || 0,

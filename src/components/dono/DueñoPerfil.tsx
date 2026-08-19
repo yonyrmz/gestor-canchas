@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 
 interface Perfil {
-  id: number;
+  id: string;
   nombre: string;
   email: string;
   telefono?: string;
@@ -12,7 +12,7 @@ interface Perfil {
 }
 
 interface Props {
-  userId: number;
+  userId: string;
 }
 
 export default function DueñoPerfil({ userId }: Props) {

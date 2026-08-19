@@ -27,7 +27,7 @@ export default function TurnosAdmin() {
     setLoading(false);
   };
 
-  const updateTurno = async (id: number, updates: Record<string, unknown>) => {
+  const updateTurno = async (id: string, updates: Record<string, unknown>) => {
     await fetch('/api/turnos/update', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -36,8 +36,8 @@ export default function TurnosAdmin() {
     fetchTurnos();
   };
 
-  const confirmarTurno = (id: number) => updateTurno(id, { estado: 'confirmado' });
-  const rechazarTurno = (id: number) => updateTurno(id, { estado: 'cancelado' });
+  const confirmarTurno = (id: string) => updateTurno(id, { estado: 'confirmado' });
+  const rechazarTurno = (id: string) => updateTurno(id, { estado: 'cancelado' });
 
   const getEstadoBadge = (estado: string) => {
     switch (estado) {
