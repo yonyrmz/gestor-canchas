@@ -1,0 +1,102 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Usuario {
+  id        Int      @id @default(autoincrement())
+  nombre    String
+  email     String   @unique
+  password  String
+  rol       String   @default("cliente")
+  telefono  String?
+  logo      String?
+  servicios String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  canchas     Cancha[]
+  turnos      Turno[]
+  notificaciones Notificacion[]
+
+  @@map("Usuarios")
+}
+
+model Cancha {
+  id              Int      @id @default(autoincrement())
+  nombre          String
+  tipo            String
+  precioPorHora   Float    @map("precio_por_hora")
+  disponible      Boolean  @default(true)
+  descripcion     String?
+  fotos           String?
+  ubicacion       String?
+  propietarioId   Int      @default(1) @map("propietario_id")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  propietario   Usuario   @relation(fields: [propietarioId], references: [id])
+  horarios      Horario[]
+  turnos        Turno[]
+
+  @@map("Canchas")
+}
+
+model Turno {
+  id                 Int      @id @default(autoincrement())
+  usuarioId          Int      @map("usuario_id")
+  canchaId           Int      @map("cancha_id")
+  fecha              String
+  horaInicio         String   @map("hora_inicio")
+  horaFin            String   @map("hora_fin")
+  tarifa             Float
+  senaPagada         Boolean  @default(false) @map("sena_pagada")
+  estado             String   @default("pendiente")
+  multa              Float    @default(0)
+  multaDescripcion   String?  @map("multa_descripcion")
+  cancelacionMotivo  String?  @map("cancelacion_motivo")
+  createdAt          DateTime @default(now()) @map("created_at")
+
+  usuario        Usuario     @relation(fields: [usuarioId], references: [id])
+  cancha         Cancha      @relation(fields: [canchaId], references: [id])
+  notificaciones Notificacion[]
+
+  @@map("Turnos")
+}
+
+model Horario {
+  id            Int     @id @default(autoincrement())
+  canchaId      Int     @map("cancha_id")
+  diaSemana     Int     @map("dia_semana")
+  horaApertura  String  @default("08:00") @map("hora_apertura")
+  horaCierre    String  @default("22:00") @map("hora_cierre")
+  activo        Boolean @default(true)
+
+  cancha Cancha @relation(fields: [canchaId], references: [id], onDelete: Cascade)
+
+  @@map("Horarios")
+}
+
+model Notificacion {
+  id        Int      @id @default(autoincrement())
+  usuarioId Int      @map("usuario_id")
+  turnoId   Int?     @map("turno_id")
+  titulo    String
+  mensaje   String
+  leida     Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id])
+  turno   Turno?  @relation(fields: [turnoId], references: [id])
+
+  @@map("Notificaciones")
+}
+
+model Configuracion {
+  id    Int    @id @default(autoincrement())
+  clave String @unique
+  valor String
+
+  @@map("Configuracion")
+}
