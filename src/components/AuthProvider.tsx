@@ -1,6 +1,8 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { auth, googleProvider } from '@/lib/firebase-client';
+import { signInWithPopup } from 'firebase/auth';
 
 interface User {
   id: string;
@@ -14,6 +16,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<{ error?: string }>;
+  loginWithGoogle: () => Promise<{ error?: string }>;
   register: (data: { nombre: string; email: string; password: string; rol?: string; telefono?: string }) => Promise<{ error?: string }>;
   logout: () => Promise<void>;
 }
@@ -38,6 +41,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch { return { error: 'Error de conexión' }; }
   };
 
+  const loginWithGoogle = async () => {
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      const idToken = await result.user.getIdToken();
+
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ googleIdToken: idToken }),
+      });
+      const data = await res.json();
+      if (!res.ok) return { error: data.error };
+      setUser(data.user);
+      return {};
+    } catch (error: unknown) {
+      if (error && typeof error === 'object' && 'code' in error && error.code === 'auth/popup-closed-by-user') {
+        return {};
+      }
+      return { error: 'Error al iniciar sesión con Google' };
+    }
+  };
+
   const register = async (formData: { nombre: string; email: string; password: string; rol?: string; telefono?: string }) => {
     try {
       const res = await fetch('/api/auth/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(formData) });
@@ -50,7 +75,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => { await fetch('/api/auth/logout', { method: 'POST' }); setUser(null); };
 
-  return <AuthContext.Provider value={{ user, loading, login, register, logout }}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={{ user, loading, login, loginWithGoogle, register, logout }}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {
