@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDb, getFirebaseAuth } from '@/lib/firebase';
+import { getDb } from '@/lib/firebase';
+
+const FIREBASE_API_KEY = process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
 
 export async function GET(request: NextRequest) {
   try {
@@ -30,14 +32,27 @@ export async function POST(request: NextRequest) {
     const { nombre, email, password, rol = 'cliente', telefono } = await request.json();
     if (!nombre || !email || !password) return NextResponse.json({ error: 'Nombre, email y contraseña son requeridos' }, { status: 400 });
 
-    const fbAuth = await getFirebaseAuth();
     const db = await getDb();
 
-    const existing = await fbAuth.getUserByEmail(email).catch(() => null);
-    if (existing) return NextResponse.json({ error: `El email ${email} ya está registrado` }, { status: 409 });
+    const existingSnap = await db.collection('usuarios').where('email', '==', email).limit(1).get();
+    if (!existingSnap.empty) return NextResponse.json({ error: `El email ${email} ya está registrado` }, { status: 409 });
 
-    const userRecord = await fbAuth.createUser({ email, password, displayName: nombre });
-    await db.collection('usuarios').doc(userRecord.uid).set({
+    const fbRes = await fetch(
+      `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${FIREBASE_API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, displayName: nombre, returnSecureToken: true }),
+      }
+    );
+    const fbData = await fbRes.json();
+    if (!fbRes.ok) {
+      const msg: string = fbData.error?.message || '';
+      if (msg.includes('EMAIL_EXISTS')) return NextResponse.json({ error: `El email ${email} ya está registrado` }, { status: 409 });
+      return NextResponse.json({ error: 'Error al crear usuario en Firebase Auth' }, { status: 500 });
+    }
+
+    await db.collection('usuarios').doc(fbData.localId).set({
       nombre,
       email,
       rol,
@@ -47,7 +62,7 @@ export async function POST(request: NextRequest) {
       createdAt: new Date().toISOString(),
     });
 
-    return NextResponse.json({ id: userRecord.uid, message: 'Usuario creado' }, { status: 201 });
+    return NextResponse.json({ id: fbData.localId, message: 'Usuario creado' }, { status: 201 });
   } catch {
     return NextResponse.json({ error: 'Error al crear usuario' }, { status: 500 });
   }
@@ -81,7 +96,6 @@ export async function DELETE(request: NextRequest) {
     if (!id) return NextResponse.json({ error: 'ID requerido' }, { status: 400 });
 
     const db = await getDb();
-    const fbAuth = await getFirebaseAuth();
 
     const notifs = await db.collection('notificaciones').where('usuarioId', '==', id).get();
     for (const doc of notifs.docs) await doc.ref.delete();
@@ -93,7 +107,6 @@ export async function DELETE(request: NextRequest) {
     for (const doc of canchas.docs) await doc.ref.delete();
 
     await db.collection('usuarios').doc(id).delete();
-    await fbAuth.deleteUser(id).catch(() => {});
 
     return NextResponse.json({ message: 'Usuario eliminado' });
   } catch {
