@@ -22,12 +22,13 @@ export default function CanchasDisponibles({ onSelectCancha, canchaSeleccionada 
     const fetchData = async () => {
       const resCanchas = await fetch('/api/canchas');
       const allCanchas = await resCanchas.json();
-      const disponibles = allCanchas.filter((c: Cancha) => c.disponible);
+      const disponibles = Array.isArray(allCanchas) ? allCanchas.filter((c: Cancha) => c.disponible) : [];
 
       const canchasConHorarios = await Promise.all(
         disponibles.map(async (c: Cancha) => {
           const resH = await fetch(`/api/horarios?cancha_id=${c.id}`);
-          const horarios = await resH.json();
+          const horariosData = await resH.json();
+          const horarios = Array.isArray(horariosData) ? horariosData : [];
           return { ...c, horarios };
         })
       );
@@ -42,7 +43,7 @@ export default function CanchasDisponibles({ onSelectCancha, canchaSeleccionada 
   if (canchas.length === 0) return <div className="p-6 text-text-muted">No hay canchas disponibles</div>;
 
   return (
-    <div className="p-6">
+    <div className="p-4 sm:p-6">
       <h2 className="text-xl font-black tracking-wide text-text-primary font-display mb-6">CANCHAS DISPONIBLES</h2>
       <div className="space-y-3">
         {canchas.map((cancha) => (

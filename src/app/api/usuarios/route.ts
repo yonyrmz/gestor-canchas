@@ -9,8 +9,9 @@ export async function GET(request: NextRequest) {
     const q = searchParams.get('q');
     const db = await getDb();
 
-    const snapshot = await db.collection('usuarios').orderBy('createdAt', 'desc').get();
+    const snapshot = await db.collection('usuarios').get();
     let usuarios = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    usuarios.sort((a, b) => ((b as Record<string, unknown>).createdAt as string || '') > ((a as Record<string, unknown>).createdAt as string || '') ? 1 : -1);
 
     if (q) {
       const lower = q.toLowerCase();

@@ -7,11 +7,12 @@ export async function GET(request: NextRequest) {
     const propietarioId = searchParams.get('propietario_id');
     const db = await getDb();
 
-    let query: FirebaseFirestore.Query = db.collection('canchas').orderBy('createdAt', 'desc');
+    let query: FirebaseFirestore.Query = db.collection('canchas');
     if (propietarioId) query = query.where('propietarioId', '==', propietarioId);
 
     const snapshot = await query.get();
     const canchas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    canchas.sort((a, b) => ((b as Record<string, unknown>).createdAt as string || '') > ((a as Record<string, unknown>).createdAt as string || '') ? 1 : -1);
     return NextResponse.json(canchas);
   } catch {
     return NextResponse.json({ error: 'Error al obtener canchas' }, { status: 500 });

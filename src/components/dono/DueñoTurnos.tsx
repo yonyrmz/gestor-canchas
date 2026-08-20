@@ -109,16 +109,16 @@ export default function DueñoTurnos({ userId }: { userId: string }) {
   if (loading) return <div className="p-6 text-text-muted animate-pulse">Cargando turnos...</div>;
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
+    <div className="p-4 sm:p-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 mb-6">
         <div>
-          <h2 className="text-xl font-black tracking-wide text-text-primary font-display">MIS TURNOS</h2>
-          <p className="text-xs text-text-muted mt-1">{filtrados.length} turno{filtrados.length !== 1 ? 's' : ''}</p>
+          <h2 className="text-lg sm:text-xl font-black tracking-wide text-text-primary font-display">MIS TURNOS</h2>
+          <p className="text-[10px] sm:text-xs text-text-muted mt-1">{filtrados.length} turno{filtrados.length !== 1 ? 's' : ''}</p>
         </div>
         <select
           value={filtro}
           onChange={(e) => setFiltro(e.target.value)}
-          className="input-dark rounded-lg px-3 py-2 text-xs font-medium"
+          className="input-dark rounded-lg px-2 sm:px-3 py-2 text-[10px] sm:text-xs font-medium"
         >
           <option value="todos">Todos</option>
           <option value="pendiente">Pendientes</option>

@@ -17,14 +17,14 @@ export default function DueñoHorarios({ userId }: { userId: string }) {
   useEffect(() => {
     fetch(`/api/canchas?propietario_id=${userId}`)
       .then((r) => r.json())
-      .then((data) => { setCanchas(data); setLoading(false); });
+      .then((data) => { setCanchas(Array.isArray(data) ? data : []); setLoading(false); });
   }, [userId]);
 
   useEffect(() => {
     if (canchaSeleccionada) {
       fetch(`/api/horarios?cancha_id=${canchaSeleccionada}`)
         .then((r) => r.json())
-        .then((data) => setHorarios(data.map((h: Record<string, unknown>) => ({ ...h, activo: !!h.activo }))));
+        .then((data) => setHorarios(Array.isArray(data) ? data.map((h: Horario) => ({ ...h, activo: !!h.activo })) : []));
     }
   }, [canchaSeleccionada]);
 
@@ -61,8 +61,8 @@ export default function DueñoHorarios({ userId }: { userId: string }) {
   if (loading) return <div className="p-6 text-text-muted animate-pulse">Cargando...</div>;
 
   return (
-    <div className="p-6">
-      <h2 className="text-xl font-black tracking-wide text-text-primary font-display mb-6">HORARIOS</h2>
+    <div className="p-4 sm:p-6">
+      <h2 className="text-lg sm:text-xl font-black tracking-wide text-text-primary font-display mb-6">HORARIOS</h2>
       <div className="mb-6">
         <label className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-2">Seleccionar cancha</label>
         <select
@@ -93,7 +93,7 @@ export default function DueñoHorarios({ userId }: { userId: string }) {
               <BulkSchedule
                 canchaId={canchaSeleccionada}
                 onSaved={() => {
-                  fetch(`/api/horarios?cancha_id=${canchaSeleccionada}`).then((r) => r.json()).then(setHorarios);
+    fetch(`/api/horarios?cancha_id=${canchaSeleccionada}`).then((r) => r.json()).then((data) => setHorarios(Array.isArray(data) ? data : []));
                   setShowBulk(false);
                 }}
                 onCancel={() => setShowBulk(false)}

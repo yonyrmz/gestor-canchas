@@ -30,23 +30,23 @@ export default function DonoPage() {
   return (
     <div className="min-h-screen bg-bg-primary noise-bg">
       <header className="border-b border-border-dim bg-bg-secondary/80 backdrop-blur-sm sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto py-4 px-4 flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <Link href="/" className="flex items-center gap-2">
-              <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-accent-cyan to-accent-green flex items-center justify-center glow-cyan">
-                <span className="text-bg-primary font-black text-sm">GC</span>
+        <div className="max-w-7xl mx-auto py-3 sm:py-4 px-3 sm:px-4 flex justify-between items-center gap-2">
+          <div className="flex items-center gap-2 sm:gap-4 min-w-0">
+            <Link href="/" className="flex-shrink-0">
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-gradient-to-br from-accent-cyan to-accent-green flex items-center justify-center glow-cyan">
+                <span className="text-bg-primary font-black text-xs sm:text-sm">GC</span>
               </div>
             </Link>
-            <div>
-              <h1 className="text-lg font-black tracking-wide text-text-primary font-display">MI PANEL</h1>
-              <p className="text-xs text-text-muted">{user.nombre}</p>
+            <div className="min-w-0">
+              <h1 className="text-sm sm:text-lg font-black tracking-wide text-text-primary font-display truncate">MI PANEL</h1>
+              <p className="text-[10px] sm:text-xs text-text-muted truncate">{user.nombre}</p>
             </div>
           </div>
-          <div className="flex gap-3 items-center">
-            <Link href="/" className="text-xs text-text-muted hover:text-text-secondary transition-colors uppercase tracking-wider font-medium">Inicio</Link>
+          <div className="flex gap-2 sm:gap-3 items-center flex-shrink-0">
+            <Link href="/" className="text-[10px] sm:text-xs text-text-muted hover:text-text-secondary transition-colors uppercase tracking-wider font-medium hidden sm:block">Inicio</Link>
             <button
               onClick={async () => { await logout(); router.push('/login'); }}
-              className="border border-border-dim text-text-muted px-3 py-1.5 rounded-lg text-xs hover:border-accent-magenta/30 hover:text-accent-magenta transition-all font-medium uppercase tracking-wider"
+              className="border border-border-dim text-text-muted px-2 sm:px-3 py-1.5 rounded-lg text-[10px] sm:text-xs hover:border-accent-magenta/30 hover:text-accent-magenta transition-all font-medium uppercase tracking-wider"
             >
               Salir
             </button>

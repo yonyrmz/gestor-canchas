@@ -34,7 +34,7 @@ export default function UsuariosAdmin() {
   const fetchUsuarios = async () => {
     const res = await fetch('/api/usuarios');
     const data = await res.json();
-    setUsuarios(data);
+    setUsuarios(Array.isArray(data) ? data : []);
     setLoading(false);
   };
 
@@ -120,17 +120,17 @@ export default function UsuariosAdmin() {
   if (loading) return <div className="p-6 text-text-muted animate-pulse">Cargando usuarios...</div>;
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
+    <div className="p-4 sm:p-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 mb-6">
         <div>
-          <h2 className="text-xl font-black tracking-wide text-text-primary font-display">USUARIOS</h2>
-          <p className="text-xs text-text-muted mt-1">{filtrados.length} {filtrados.length === 1 ? 'registrado' : 'registrados'}</p>
+          <h2 className="text-lg sm:text-xl font-black tracking-wide text-text-primary font-display">USUARIOS</h2>
+          <p className="text-[10px] sm:text-xs text-text-muted mt-1">{filtrados.length} {filtrados.length === 1 ? 'registrado' : 'registrados'}</p>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="w-56"><SearchBar value={busqueda} onChange={setBusqueda} placeholder="Buscar usuarios..." /></div>
+        <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
+          <div className="flex-1 sm:w-56 sm:flex-none"><SearchBar value={busqueda} onChange={setBusqueda} placeholder="Buscar usuarios..." /></div>
           <button onClick={() => { setShowGenerator(!showGenerator); setGenCredenciales([]); }}
-            className="btn-gold px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider">
-            {showGenerator ? 'Cancelar' : '⚡ Generar'}
+            className="btn-gold px-3 sm:px-4 py-2 rounded-lg text-[10px] sm:text-xs font-bold uppercase tracking-wider flex-shrink-0">
+            {showGenerator ? 'Cancelar' : <span><span className="hidden sm:inline">&#9889; Generar</span><span className="sm:hidden">+ Gen</span></span>}
           </button>
         </div>
       </div>

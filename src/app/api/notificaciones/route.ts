@@ -10,11 +10,11 @@ export async function GET(request: NextRequest) {
     const db = await getDb();
     const snapshot = await db.collection('notificaciones')
       .where('usuarioId', '==', usuarioId)
-      .orderBy('createdAt', 'desc')
       .limit(50)
       .get();
 
     const notificaciones = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    notificaciones.sort((a, b) => ((b as Record<string, unknown>).createdAt as string || '') > ((a as Record<string, unknown>).createdAt as string || '') ? 1 : -1);
     const noLeidas = notificaciones.filter((n: Record<string, unknown>) => !n.leida).length;
 
     return NextResponse.json({ notificaciones, noLeidas });

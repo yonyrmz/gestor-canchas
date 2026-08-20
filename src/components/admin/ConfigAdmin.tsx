@@ -31,7 +31,7 @@ export default function ConfigAdmin() {
   if (loading) return <div className="p-6 text-text-muted animate-pulse">Cargando...</div>;
 
   return (
-    <div className="p-6">
+    <div className="p-4 sm:p-6">
       <h2 className="text-xl font-black tracking-wide text-text-primary font-display mb-2">CONFIGURACIÓN</h2>
       <p className="text-xs text-text-muted mb-6">
         Datos de transferencia y reglas de cancelación.

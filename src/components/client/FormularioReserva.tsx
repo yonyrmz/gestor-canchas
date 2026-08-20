@@ -160,7 +160,7 @@ export default function FormularioReserva({ cancha, onVolver }: Props) {
   };
 
   return (
-    <div className="p-6">
+    <div className="p-4 sm:p-6">
       <button onClick={onVolver} className="text-accent-cyan hover:text-accent-cyan/80 text-sm mb-4 font-medium transition-colors">&larr; Volver a canchas</button>
 
       {fotos.length > 0 && (

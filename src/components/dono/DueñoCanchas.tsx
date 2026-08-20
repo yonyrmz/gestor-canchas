@@ -42,7 +42,7 @@ export default function DueñoCanchas({ userId }: { userId: string }) {
   const fetchCanchas = async () => {
     const res = await fetch(`/api/canchas?propietario_id=${userId}`);
     const data = await res.json();
-    setCanchas(data.map((c: CanchaParsed) => ({ ...c, fotos_parsed: parseFotos(c.fotos), ubicacion_parsed: parseUbicacion(c.ubicacion) })));
+    setCanchas(Array.isArray(data) ? data.map((c: CanchaParsed) => ({ ...c, fotos_parsed: parseFotos(c.fotos), ubicacion_parsed: parseUbicacion(c.ubicacion) })) : []);
     setLoading(false);
   };
 
@@ -110,11 +110,11 @@ export default function DueñoCanchas({ userId }: { userId: string }) {
   if (loading) return <div className="p-6 text-text-muted animate-pulse">Cargando canchas...</div>;
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
+    <div className="p-4 sm:p-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 mb-6">
         <div>
-          <h2 className="text-xl font-black tracking-wide text-text-primary font-display">MIS CANCHAS</h2>
-          <p className="text-xs text-text-muted mt-1">{canchas.length} registradas</p>
+          <h2 className="text-lg sm:text-xl font-black tracking-wide text-text-primary font-display">MIS CANCHAS</h2>
+          <p className="text-[10px] sm:text-xs text-text-muted mt-1">{canchas.length} registradas</p>
         </div>
         <button onClick={() => { resetForm(); setShowForm(!showForm); }}
           className="btn-primary text-white px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider">

@@ -98,7 +98,7 @@ export default function ClienteHistorial({ userId }: Props) {
   const orden: (keyof typeof ESTADO_CONFIG)[] = ['confirmado', 'pendiente', 'cancelado', 'no_show'];
 
   return (
-    <div className="p-6">
+    <div className="p-4 sm:p-6">
       <h2 className="text-xl font-black tracking-wide text-text-primary font-display mb-6">MIS RESERVAS</h2>
       {turnos.length === 0 ? (
         <p className="text-text-muted text-center text-sm">No tenés reservas todavía</p>

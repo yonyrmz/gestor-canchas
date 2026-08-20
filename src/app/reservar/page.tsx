@@ -38,8 +38,8 @@ export default function ReservarPage() {
     fetch(`/api/notificaciones?usuario_id=${user.id}`)
       .then((r) => r.json())
       .then((d) => {
-        setNotificaciones(d.notificaciones || []);
-        setNoLeidas(d.noLeidas || 0);
+        setNotificaciones(Array.isArray(d?.notificaciones) ? d.notificaciones : []);
+        setNoLeidas(typeof d?.noLeidas === 'number' ? d.noLeidas : 0);
       })
       .catch(() => {});
 
@@ -94,28 +94,29 @@ export default function ReservarPage() {
   return (
     <div className="min-h-screen bg-bg-primary noise-bg">
       <header className="border-b border-border-dim bg-bg-secondary/80 backdrop-blur-sm sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto py-4 px-4 flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <Link href="/" className="flex items-center gap-2">
-              <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-accent-cyan to-accent-green flex items-center justify-center glow-cyan">
-                <span className="text-bg-primary font-black text-sm">GC</span>
+        <div className="max-w-7xl mx-auto py-3 sm:py-4 px-3 sm:px-4 flex justify-between items-center gap-2">
+          <div className="flex items-center gap-2 sm:gap-4 min-w-0">
+            <Link href="/" className="flex-shrink-0">
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-gradient-to-br from-accent-cyan to-accent-green flex items-center justify-center glow-cyan">
+                <span className="text-bg-primary font-black text-xs sm:text-sm">GC</span>
               </div>
             </Link>
-            <div>
-              <h1 className="text-lg font-black tracking-wide text-text-primary font-display">RESERVAS</h1>
-              <p className="text-xs text-text-muted">{user.nombre}</p>
+            <div className="min-w-0">
+              <h1 className="text-sm sm:text-lg font-black tracking-wide text-text-primary font-display truncate">RESERVAS</h1>
+              <p className="text-[10px] sm:text-xs text-text-muted truncate">{user.nombre}</p>
             </div>
           </div>
-          <div className="flex gap-3 items-center">
+          <div className="flex gap-1.5 sm:gap-3 items-center flex-shrink-0">
             <button
               onClick={() => setShowing((prev) => prev === 'historial' ? null : 'historial')}
-              className={`text-xs uppercase tracking-wider font-medium transition-all px-3 py-1.5 rounded-lg border ${
+              className={`text-[10px] sm:text-xs uppercase tracking-wider font-medium transition-all px-2 sm:px-3 py-1.5 rounded-lg border ${
                 showing === 'historial'
                   ? 'text-accent-cyan border-accent-cyan/30 bg-accent-cyan/10'
                   : 'text-text-muted border-border-dim hover:border-accent-cyan/30 hover:text-text-secondary'
               }`}
             >
-              Mis Reservas
+              <span className="hidden sm:inline">Mis Reservas</span>
+              <span className="sm:hidden">Reservas</span>
             </button>
             <div ref={notifRef} className="relative">
               <button
@@ -132,7 +133,7 @@ export default function ReservarPage() {
                 )}
               </button>
               {showNotifDropdown && (
-                <div className="absolute right-0 top-full mt-2 w-80 bg-bg-secondary border border-border-dim rounded-xl shadow-2xl z-50 overflow-hidden">
+                <div className="absolute right-0 top-full mt-2 w-72 sm:w-80 bg-bg-secondary border border-border-dim rounded-xl shadow-2xl z-50 overflow-hidden">
                   <div className="flex justify-between items-center px-4 py-3 border-b border-border-dim">
                     <span className="text-xs font-bold text-text-muted uppercase tracking-wider">Notificaciones</span>
                     {noLeidas > 0 && (
@@ -171,10 +172,10 @@ export default function ReservarPage() {
                 </div>
               )}
             </div>
-            <Link href="/" className="text-xs text-text-muted hover:text-text-secondary transition-colors uppercase tracking-wider font-medium">Inicio</Link>
+            <Link href="/" className="text-[10px] sm:text-xs text-text-muted hover:text-text-secondary transition-colors uppercase tracking-wider font-medium hidden sm:block">Inicio</Link>
             <button
               onClick={async () => { await logout(); router.push('/login'); }}
-              className="border border-border-dim text-text-muted px-3 py-1.5 rounded-lg text-xs hover:border-accent-magenta/30 hover:text-accent-magenta transition-all font-medium uppercase tracking-wider"
+              className="border border-border-dim text-text-muted px-2 sm:px-3 py-1.5 rounded-lg text-[10px] sm:text-xs hover:border-accent-magenta/30 hover:text-accent-magenta transition-all font-medium uppercase tracking-wider"
             >
               Salir
             </button>

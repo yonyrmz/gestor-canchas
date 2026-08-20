@@ -46,12 +46,12 @@ export default function CanchasAdmin() {
       fetch('/api/canchas').then((r) => r.json()),
       fetch('/api/usuarios').then((r) => r.json()),
     ]).then(([canchasData, usuariosData]) => {
-      setCanchas(canchasData.map((c: CanchaConDuenio) => ({
+      setCanchas(Array.isArray(canchasData) ? canchasData.map((c: CanchaConDuenio) => ({
         ...c,
         fotos_parsed: parseFotos(c.fotos),
         ubicacion_parsed: parseUbicacion(c.ubicacion),
-      })));
-      setUsuarios(usuariosData.filter((u: UsuarioBasico) => u.rol === 'dono' || u.rol === 'superadmin'));
+      })) : []);
+      setUsuarios(Array.isArray(usuariosData) ? usuariosData.filter((u: UsuarioBasico) => u.rol === 'dono' || u.rol === 'superadmin') : []);
       setLoading(false);
     });
   }, []);
@@ -94,7 +94,7 @@ export default function CanchasAdmin() {
   const fetchCanchas = async () => {
     const res = await fetch('/api/canchas');
     const data = await res.json();
-    setCanchas(data.map((c: CanchaConDuenio) => ({ ...c, fotos_parsed: parseFotos(c.fotos), ubicacion_parsed: parseUbicacion(c.ubicacion) })));
+    setCanchas(Array.isArray(data) ? data.map((c: CanchaConDuenio) => ({ ...c, fotos_parsed: parseFotos(c.fotos), ubicacion_parsed: parseUbicacion(c.ubicacion) })) : []);
   };
 
   const handleCreate = async (e: React.FormEvent) => {
@@ -171,16 +171,16 @@ export default function CanchasAdmin() {
   );
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
+    <div className="p-4 sm:p-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 mb-6">
         <div>
-          <h2 className="text-xl font-black tracking-wide text-text-primary font-display">CANCHAS</h2>
-          <p className="text-xs text-text-muted mt-1">{filtrados.length} registradas</p>
+          <h2 className="text-lg sm:text-xl font-black tracking-wide text-text-primary font-display">CANCHAS</h2>
+          <p className="text-[10px] sm:text-xs text-text-muted mt-1">{filtrados.length} registradas</p>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="w-56"><SearchBar value={busqueda} onChange={setBusqueda} placeholder="Buscar canchas..." /></div>
+        <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
+          <div className="flex-1 sm:w-56 sm:flex-none"><SearchBar value={busqueda} onChange={setBusqueda} placeholder="Buscar canchas..." /></div>
           <button onClick={() => { setShowForm(!showForm); cancelarEdicion(); }}
-            className="btn-primary text-white px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider">
+            className="btn-primary text-white px-3 sm:px-4 py-2 rounded-lg text-[10px] sm:text-xs font-bold uppercase tracking-wider flex-shrink-0">
             {showForm ? 'Cancelar' : '+ Nueva'}
           </button>
         </div>

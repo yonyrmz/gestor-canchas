@@ -84,7 +84,8 @@ export default function CanchasAgrupadas({ onSelectCancha }: Props) {
       const canchasConHorarios = await Promise.all(
         disponibles.map(async (c) => {
           const resH = await fetch(`/api/horarios?cancha_id=${c.id}`);
-          const horarios: Horario[] = await resH.json();
+          const horariosRaw = await resH.json();
+          const horarios: Horario[] = Array.isArray(horariosRaw) ? horariosRaw : [];
           const owner = ownersMap.get(c.propietario_id);
           const parsed: CanchaConHorarios = {
             ...c, horarios, propietario_nombre: '',
@@ -140,7 +141,7 @@ export default function CanchasAgrupadas({ onSelectCancha }: Props) {
 
   if (gruposFiltrados.length === 0) {
     return (
-      <div className="p-6">
+      <div className="p-4 sm:p-6">
         <SearchBar value={busqueda} onChange={setBusqueda} placeholder="Buscar cancha, tipo o ubicación..." />
         <p className="text-text-muted mt-4 text-center">
           {busqueda ? 'No se encontraron canchas para esa búsqueda' : 'No hay canchas disponibles'}
@@ -150,8 +151,8 @@ export default function CanchasAgrupadas({ onSelectCancha }: Props) {
   }
 
   return (
-    <div className="p-6">
-      <h2 className="text-xl font-black tracking-wide text-text-primary font-display mb-4">CANCHAS DISPONIBLES</h2>
+    <div className="p-4 sm:p-6">
+      <h2 className="text-lg sm:text-xl font-black tracking-wide text-text-primary font-display mb-4">CANCHAS DISPONIBLES</h2>
       <SearchBar value={busqueda} onChange={setBusqueda} placeholder="Buscar cancha, tipo o ubicación..." />
       <div className="space-y-8 mt-6">
         {gruposFiltrados.map((grupo) => {

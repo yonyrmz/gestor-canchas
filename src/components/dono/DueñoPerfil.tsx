@@ -82,8 +82,8 @@ export default function DueñoPerfil({ userId }: Props) {
   };
 
   return (
-    <div className="p-6">
-      <h2 className="text-lg font-black tracking-wide text-text-primary font-display mb-6">MI PERFIL</h2>
+    <div className="p-4 sm:p-6">
+      <h2 className="text-lg sm:text-xl font-black tracking-wide text-text-primary font-display mb-6">MI PERFIL</h2>
 
       <div className="flex flex-col sm:flex-row gap-8 items-start">
         <div className="flex flex-col items-center gap-4">
