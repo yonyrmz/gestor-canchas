@@ -1,7 +1,9 @@
 function getPrivateKey(): string {
   const key = process.env.FIREBASE_PRIVATE_KEY ?? '';
   return key
-    .replace(/^"|"$/g, '')
+    .replace(/^[\s"']+|[\s"']+$/g, '')
+    .replace(/\\\\r\\\\n/g, '\n')
+    .replace(/\\\\n/g, '\n')
     .replace(/\\r\\n/g, '\n')
     .replace(/\\n/g, '\n')
     .replace(/\r\n/g, '\n');
