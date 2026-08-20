@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { auth, googleProvider } from '@/lib/firebase-client';
+import { getFirebaseAuth, getGoogleProvider } from '@/lib/firebase-client';
 import { signInWithPopup } from 'firebase/auth';
 
 interface User {
@@ -43,7 +43,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loginWithGoogle = async () => {
     try {
-      const result = await signInWithPopup(auth, googleProvider);
+      const result = await signInWithPopup(getFirebaseAuth(), getGoogleProvider());
       const idToken = await result.user.getIdToken();
 
       const res = await fetch('/api/auth/login', {
