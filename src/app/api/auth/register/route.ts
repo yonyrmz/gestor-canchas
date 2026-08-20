@@ -52,9 +52,11 @@ export async function POST(request: NextRequest) {
     });
     return res;
   } catch (error: unknown) {
+    console.error('Error detallado de registro:', error);
     if (error && typeof error === 'object' && 'code' in error && error.code === 'auth/email-already-exists') {
       return NextResponse.json({ error: 'El email ya está registrado' }, { status: 409 });
     }
-    return NextResponse.json({ error: 'Error al registrar' }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Error desconocido';
+    return NextResponse.json({ error: 'Error al registrar', detail: message }, { status: 500 });
   }
 }
