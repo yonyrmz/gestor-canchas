@@ -61,7 +61,7 @@ export default function CanchasAgrupadas({ onSelectCancha }: Props) {
     const fetchData = async () => {
       const resCanchas = await fetch('/api/canchas');
       const allCanchas: Cancha[] = await resCanchas.json();
-      const disponibles = allCanchas.filter((c) => c.disponible);
+      const disponibles = Array.isArray(allCanchas) ? allCanchas.filter((c) => c.disponible) : [];
 
       const propietarioIds = [...new Set(disponibles.map(c => c.propietario_id))];
       const ownersMap = new Map<string, OwnerProfile>();

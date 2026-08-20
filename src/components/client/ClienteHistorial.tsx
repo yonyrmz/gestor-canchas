@@ -61,7 +61,7 @@ export default function ClienteHistorial({ userId }: Props) {
   useEffect(() => {
     fetch(`/api/turnos?usuario_id=${userId}`)
       .then((r) => r.json())
-      .then((data) => { setTurnos(data); setLoading(false); })
+      .then((data) => { setTurnos(Array.isArray(data) ? data : []); setLoading(false); })
       .catch(() => setLoading(false));
     fetch('/api/config')
       .then((r) => r.json())

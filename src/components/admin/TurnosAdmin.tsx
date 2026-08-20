@@ -23,7 +23,7 @@ export default function TurnosAdmin() {
   const fetchTurnos = async () => {
     const res = await fetch('/api/turnos');
     const data = await res.json();
-    setTurnos(data);
+    setTurnos(Array.isArray(data) ? data : []);
     setLoading(false);
   };
 

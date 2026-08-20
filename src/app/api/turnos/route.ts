@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
     if (canchaId) query = query.where('canchaId', '==', canchaId);
     if (usuarioId) query = query.where('usuarioId', '==', usuarioId);
 
-    const snapshot = await query.orderBy('fecha', 'desc').orderBy('horaInicio', 'asc').get();
+    const snapshot = await query.get();
 
     const mapped = await Promise.all(
       snapshot.docs.map(async doc => {
@@ -46,6 +46,11 @@ export async function GET(request: NextRequest) {
         };
       })
     );
+
+    mapped.sort((a, b) => {
+      if (a.fecha !== b.fecha) return a.fecha > b.fecha ? -1 : 1;
+      return a.hora_inicio > b.hora_inicio ? 1 : -1;
+    });
 
     return NextResponse.json(mapped);
   } catch {

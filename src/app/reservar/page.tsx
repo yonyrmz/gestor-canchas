@@ -46,7 +46,7 @@ export default function ReservarPage() {
     fetch(`/api/turnos?usuario_id=${user.id}`)
       .then((r) => r.json())
       .then((data) => {
-        const confirmados = data.filter((t: Turno) => t.estado === 'confirmado');
+        const confirmados = Array.isArray(data) ? data.filter((t: Turno) => t.estado === 'confirmado') : [];
         setTurnosConfirmados(confirmados);
       })
       .catch(() => {});

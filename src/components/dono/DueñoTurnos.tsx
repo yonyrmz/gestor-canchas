@@ -36,16 +36,16 @@ export default function DueñoTurnos({ userId }: { userId: string }) {
       fetch(`/api/canchas?propietario_id=${userId}`).then((r) => r.json()),
       fetch('/api/turnos').then((r) => r.json()),
     ]).then(([canchasData, turnosData]: [Cancha[], TurnoConDetalles[]]) => {
-      const ids = canchasData.map((c) => c.id);
+      const ids = Array.isArray(canchasData) ? canchasData.map((c) => c.id) : [];
       setCanchasIds(ids);
-      setTurnos(turnosData.filter((t) => ids.includes(t.cancha_id)));
+      setTurnos(Array.isArray(turnosData) ? turnosData.filter((t) => ids.includes(t.cancha_id)) : []);
       setLoading(false);
     });
   }, [userId]);
 
   const refreshTurnos = () => {
     fetch('/api/turnos').then((r) => r.json()).then((data: TurnoConDetalles[]) => {
-      setTurnos(data.filter((t) => canchasIds.includes(t.cancha_id)));
+      setTurnos(Array.isArray(data) ? data.filter((t) => canchasIds.includes(t.cancha_id)) : []);
     });
   };
 
