@@ -5,7 +5,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const canchaId = searchParams.get('cancha_id');
-    const db = getDb();
+    const db = await getDb();
 
     let query: FirebaseFirestore.Query = db.collection('horarios');
     if (canchaId) query = query.where('canchaId', '==', canchaId);
@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { cancha_id, dia_semana, hora_apertura = '08:00', hora_cierre = '22:00', activo = true, horarios } = body;
-    const db = getDb();
+    const db = await getDb();
 
     if (Array.isArray(horarios)) {
       const batch = db.batch();
@@ -60,7 +60,7 @@ export async function PUT(request: NextRequest) {
   try {
     const { id, activo } = await request.json();
     if (!id) return NextResponse.json({ error: 'ID requerido' }, { status: 400 });
-    const db = getDb();
+    const db = await getDb();
     await db.collection('horarios').doc(id).update({ activo });
     return NextResponse.json({ message: 'Horario actualizado' });
   } catch {
@@ -73,7 +73,7 @@ export async function DELETE(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
     if (!id) return NextResponse.json({ error: 'ID requerido' }, { status: 400 });
-    const db = getDb();
+    const db = await getDb();
     await db.collection('horarios').doc(id).delete();
     return NextResponse.json({ message: 'Horario eliminado' });
   } catch {

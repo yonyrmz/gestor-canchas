@@ -5,7 +5,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const propietarioId = searchParams.get('propietario_id');
-    const db = getDb();
+    const db = await getDb();
 
     let query: FirebaseFirestore.Query = db.collection('canchas').orderBy('createdAt', 'desc');
     if (propietarioId) query = query.where('propietarioId', '==', propietarioId);
@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
     const { nombre, tipo, precio_por_hora, disponible = true, descripcion, fotos, ubicacion, propietario_id } = await request.json();
     if (!nombre || !tipo || !precio_por_hora) return NextResponse.json({ error: 'Nombre, tipo y precio son requeridos' }, { status: 400 });
 
-    const db = getDb();
+    const db = await getDb();
     const docRef = await db.collection('canchas').add({
       nombre,
       tipo,
@@ -48,7 +48,7 @@ export async function PUT(request: NextRequest) {
     const { id, nombre, tipo, precio_por_hora, disponible, descripcion, fotos, ubicacion } = await request.json();
     if (!id) return NextResponse.json({ error: 'ID requerido' }, { status: 400 });
 
-    const db = getDb();
+    const db = await getDb();
     const data: Record<string, unknown> = {};
     if (nombre !== undefined) data.nombre = nombre;
     if (tipo !== undefined) data.tipo = tipo;
@@ -73,7 +73,7 @@ export async function DELETE(request: NextRequest) {
     const id = searchParams.get('id');
     if (!id) return NextResponse.json({ error: 'ID requerido' }, { status: 400 });
 
-    const db = getDb();
+    const db = await getDb();
 
     const turnos = await db.collection('turnos').where('canchaId', '==', id).get();
     for (const doc of turnos.docs) await doc.ref.delete();

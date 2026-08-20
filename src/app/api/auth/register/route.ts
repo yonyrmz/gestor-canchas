@@ -8,8 +8,8 @@ export async function POST(request: NextRequest) {
     const { nombre, email, password, telefono } = await request.json();
     if (!nombre || !email || !password) return NextResponse.json({ error: 'Nombre, email y password son requeridos' }, { status: 400 });
 
-    const fbAuth = getFirebaseAuth();
-    const db = getDb();
+    const fbAuth = await getFirebaseAuth();
+    const db = await getDb();
 
     const userRecord = await fbAuth.createUser({ email, password, displayName: nombre });
 

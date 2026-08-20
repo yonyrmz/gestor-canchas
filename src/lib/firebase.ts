@@ -1,7 +1,3 @@
-import { initializeApp, getApps, cert } from 'firebase-admin/app';
-import { getFirestore } from 'firebase-admin/firestore';
-import { getAuth } from 'firebase-admin/auth';
-
 function getPrivateKey(): string {
   const key = process.env.FIREBASE_PRIVATE_KEY ?? '';
   return key
@@ -11,22 +7,31 @@ function getPrivateKey(): string {
     .replace(/\r\n/g, '\n');
 }
 
-function getApp() {
-  if (getApps().length > 0) return getApps()[0];
+let _app: ReturnType<typeof import('firebase-admin/app')['initializeApp']> | null = null;
 
-  return initializeApp({
-    credential: cert({
-      projectId: process.env.FIREBASE_PROJECT_ID!,
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL!,
-      privateKey: getPrivateKey(),
-    }),
-  });
+async function getApp() {
+  if (_app) return _app;
+  const { initializeApp, getApps, cert } = await import('firebase-admin/app');
+  if (getApps().length > 0) {
+    _app = getApps()[0];
+  } else {
+    _app = initializeApp({
+      credential: cert({
+        projectId: process.env.FIREBASE_PROJECT_ID!,
+        clientEmail: process.env.FIREBASE_CLIENT_EMAIL!,
+        privateKey: getPrivateKey(),
+      }),
+    });
+  }
+  return _app;
 }
 
-export function getDb() {
-  return getFirestore(getApp());
+export async function getDb() {
+  const { getFirestore } = await import('firebase-admin/firestore');
+  return getFirestore(await getApp());
 }
 
-export function getFirebaseAuth() {
-  return getAuth(getApp());
+export async function getFirebaseAuth() {
+  const { getAuth } = await import('firebase-admin/auth');
+  return getAuth(await getApp());
 }

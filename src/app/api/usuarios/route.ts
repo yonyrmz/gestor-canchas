@@ -1,13 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb, getFirebaseAuth } from '@/lib/firebase';
 
-const FIREBASE_API_KEY = process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
-
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const q = searchParams.get('q');
-    const db = getDb();
+    const db = await getDb();
 
     const snapshot = await db.collection('usuarios').orderBy('createdAt', 'desc').get();
     let usuarios = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -32,8 +30,8 @@ export async function POST(request: NextRequest) {
     const { nombre, email, password, rol = 'cliente', telefono } = await request.json();
     if (!nombre || !email || !password) return NextResponse.json({ error: 'Nombre, email y contraseña son requeridos' }, { status: 400 });
 
-    const fbAuth = getFirebaseAuth();
-    const db = getDb();
+    const fbAuth = await getFirebaseAuth();
+    const db = await getDb();
 
     const existing = await fbAuth.getUserByEmail(email).catch(() => null);
     if (existing) return NextResponse.json({ error: `El email ${email} ya está registrado` }, { status: 409 });
@@ -60,7 +58,7 @@ export async function PUT(request: NextRequest) {
     const { id, nombre, email, rol, telefono } = await request.json();
     if (!id) return NextResponse.json({ error: 'ID requerido' }, { status: 400 });
 
-    const db = getDb();
+    const db = await getDb();
     const data: Record<string, unknown> = {};
     if (nombre !== undefined) data.nombre = nombre;
     if (email !== undefined) data.email = email;
@@ -82,8 +80,8 @@ export async function DELETE(request: NextRequest) {
     const id = searchParams.get('id');
     if (!id) return NextResponse.json({ error: 'ID requerido' }, { status: 400 });
 
-    const db = getDb();
-    const fbAuth = getFirebaseAuth();
+    const db = await getDb();
+    const fbAuth = await getFirebaseAuth();
 
     const notifs = await db.collection('notificaciones').where('usuarioId', '==', id).get();
     for (const doc of notifs.docs) await doc.ref.delete();

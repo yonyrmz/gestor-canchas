@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
     const fecha = searchParams.get('fecha');
     const canchaId = searchParams.get('cancha_id');
     const usuarioId = searchParams.get('usuario_id');
-    const db = getDb();
+    const db = await getDb();
 
     let query: FirebaseFirestore.Query = db.collection('turnos');
     if (fecha) query = query.where('fecha', '==', fecha);
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
     const { usuario_id, cancha_id, fecha, hora_inicio, hora_fin, tarifa } = await request.json();
     if (!usuario_id || !cancha_id || !fecha || !hora_inicio || !hora_fin) return NextResponse.json({ error: 'Faltan campos requeridos' }, { status: 400 });
 
-    const db = getDb();
+    const db = await getDb();
 
     const overlapSnap = await db.collection('turnos')
       .where('canchaId', '==', cancha_id)

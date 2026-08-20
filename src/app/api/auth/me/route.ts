@@ -6,8 +6,8 @@ export async function GET(request: NextRequest) {
     const sessionCookie = request.cookies.get('session');
     if (!sessionCookie) return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
 
-    const fbAuth = getFirebaseAuth();
-    const db = getDb();
+    const fbAuth = await getFirebaseAuth();
+    const db = await getDb();
 
     const decoded = await fbAuth.verifySessionCookie(sessionCookie.value);
     const userDoc = await db.collection('usuarios').doc(decoded.uid).get();

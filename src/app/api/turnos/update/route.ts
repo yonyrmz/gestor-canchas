@@ -6,7 +6,7 @@ export async function PUT(request: NextRequest) {
     const { id, estado, sena_pagada, propietario_id, multa, multa_descripcion, motivo } = await request.json();
     if (!id) return NextResponse.json({ error: 'ID requerido' }, { status: 400 });
 
-    const db = getDb();
+    const db = await getDb();
 
     if (propietario_id) {
       const turnoDoc = await db.collection('turnos').doc(id).get();

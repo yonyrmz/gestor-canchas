@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
     const usuarioId = searchParams.get('usuario_id');
     if (!usuarioId) return NextResponse.json({ error: 'usuario_id requerido' }, { status: 400 });
 
-    const db = getDb();
+    const db = await getDb();
     const userDoc = await db.collection('usuarios').doc(usuarioId).get();
     if (!userDoc.exists) return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 });
 
@@ -32,7 +32,7 @@ export async function PUT(request: NextRequest) {
     const { usuario_id, logo, servicios } = await request.json();
     if (!usuario_id) return NextResponse.json({ error: 'usuario_id requerido' }, { status: 400 });
 
-    const db = getDb();
+    const db = await getDb();
     const data: Record<string, unknown> = {};
     if (logo !== undefined) data.logo = logo;
     if (servicios !== undefined) data.servicios = servicios;

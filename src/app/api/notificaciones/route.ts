@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
     const usuarioId = searchParams.get('usuario_id');
     if (!usuarioId) return NextResponse.json({ error: 'usuario_id requerido' }, { status: 400 });
 
-    const db = getDb();
+    const db = await getDb();
     const snapshot = await db.collection('notificaciones')
       .where('usuarioId', '==', usuarioId)
       .orderBy('createdAt', 'desc')
@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const { id, usuario_id, marcarTodas } = await request.json();
-    const db = getDb();
+    const db = await getDb();
 
     if (marcarTodas && usuario_id) {
       const snapshot = await db.collection('notificaciones')

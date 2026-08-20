@@ -22,8 +22,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: firebaseData.error?.message || 'Credenciales inválidas' }, { status: 401 });
     }
 
-    const fbAuth = getFirebaseAuth();
-    const db = getDb();
+    const fbAuth = await getFirebaseAuth();
+    const db = await getDb();
 
     const decoded = await fbAuth.verifyIdToken(firebaseData.idToken);
     const sessionCookie = await fbAuth.createSessionCookie(firebaseData.idToken, { expiresIn: 60 * 60 * 24 * 7 * 1000 });

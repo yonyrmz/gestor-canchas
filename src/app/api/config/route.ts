@@ -3,7 +3,7 @@ import { getDb } from '@/lib/firebase';
 
 export async function GET() {
   try {
-    const db = getDb();
+    const db = await getDb();
     const snapshot = await db.collection('configuracion').get();
     const config: Record<string, string> = {};
     for (const doc of snapshot.docs) {
@@ -19,7 +19,7 @@ export async function GET() {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
-    const db = getDb();
+    const db = await getDb();
     const batch = db.batch();
 
     for (const [clave, valor] of Object.entries(body)) {
